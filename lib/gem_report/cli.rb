@@ -1,3 +1,5 @@
+require "bundler"
+
 module GemReport
   class Cli
     def self.run
@@ -13,7 +15,7 @@ module GemReport
 
       data = STDIN.read
 
-      inventory = Bundler::LockfileParser.new(data)
+      inventory = ::Bundler::LockfileParser.new(data)
       csv_report = GemReport::Reports::CsvReport.new(ARGV[0], ARGV[1])
       csv_report.report(STDOUT, inventory)
     end

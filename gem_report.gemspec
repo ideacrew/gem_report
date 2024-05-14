@@ -15,9 +15,10 @@ Gem::Specification.new do |s|
   s.files = `git ls-files -- lib/* bin/*`.split("\n")
   s.homepage = %q{http://github.com/ideacrew/gem_report}
   s.require_paths = ["lib"]
+  s.executables = ["gem_report"]
   s.license = "MIT"
-  s.test_files = `git ls-files -- spec/*`.split("\n")
   s.bindir = "bin"
 
   s.required_ruby_version = '>= 2.7'
+  s.add_runtime_dependency "bundler"
 end
