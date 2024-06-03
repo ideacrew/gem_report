@@ -29,13 +29,23 @@ module GemReport
             }
           }
         }
-        components = lockfile.specs.inject([]) do |acc, spec|
-          acc + [format_spec(spec, rev_deps, gemfile_dependencies)]
+        components = lockfile.specs.inject({:components => [], :dependencies => []}) do |acc, spec|
+          result = format_spec(spec, rev_deps, gemfile_dependencies)
+          {
+            components: acc[:components] + [result[:component]],
+            dependencies: acc[:dependencies] + [result[:dependency]]
+          }
         end
         stream.puts(
           JSON.generate(
             json_output.merge({
-              "components" => components
+              components: components[:components],
+              dependencies: [
+                {
+                  ref: project_bom_ref,
+                  dependsOn: components[:dependencies]
+                }
+              ]
             })
           )
         )
@@ -46,7 +56,7 @@ module GemReport
       def format_spec(spec, rev_deps, gemfile_dependencies)
         scope = case select_gem_group(spec, rev_deps, gemfile_dependencies)
                 when "development"
-                  "optional"
+                  "excluded"
                 when "test"
                   "excluded"
                 else
@@ -61,9 +71,10 @@ module GemReport
           "version" => spec.version,
           "scope" => scope,
         }
-        # [spec.name, spec.version, select_gem_group(spec, rev_deps, gemfile_dependencies)] +
-        #  format_source(spec)
-        component_hash.merge(format_source(spec))
+        {
+          component: component_hash.merge(format_source(spec)),
+          dependency: bom_ref
+        }
       end
 
       def format_source(spec)
