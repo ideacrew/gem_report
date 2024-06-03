@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe GemReport::Reports::CsvReport, "given the enroll gemfile" do
+describe GemReport::Reports::CycloneDxReport, "given the enroll gemfile" do
   let(:lockfile_path) do
     File.expand_path(
       File.join(
