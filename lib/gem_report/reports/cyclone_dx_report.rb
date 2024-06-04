@@ -4,9 +4,10 @@ require "json"
 module GemReport
   module Reports
     class CycloneDxReport < Base
-      def initialize(project, sha)
+      def initialize(project, sha, mute_non_production = false)
         @project = project
         @sha = sha
+        @mute_exclusions = mute_non_production
       end
 
       def report(stream, lockfile, gemfile_dependencies = {})
@@ -31,10 +32,14 @@ module GemReport
         }
         components = lockfile.specs.inject({:components => [], :dependencies => []}) do |acc, spec|
           result = format_spec(spec, rev_deps, gemfile_dependencies)
-          {
-            components: acc[:components] + [result[:component]],
-            dependencies: acc[:dependencies] + [result[:dependency]]
-          }
+          if result[:omit]
+            acc
+          else
+            {
+              components: acc[:components] + [result[:component]],
+              dependencies: acc[:dependencies] + [result[:dependency]]
+            }
+          end
         end
         stream.puts(
           JSON.generate(
@@ -56,7 +61,7 @@ module GemReport
       def format_spec(spec, rev_deps, gemfile_dependencies)
         scope = case select_gem_group(spec, rev_deps, gemfile_dependencies)
                 when "development"
-                  "excluded"
+                  "optional"
                 when "test"
                   "excluded"
                 else
@@ -71,9 +76,11 @@ module GemReport
           "version" => spec.version,
           "scope" => scope,
         }
+        omit = @mute_exclusions && (scope != "required")
         {
           component: component_hash.merge(format_source(spec)),
-          dependency: bom_ref
+          dependency: bom_ref,
+          omit: omit
         }
       end
 
