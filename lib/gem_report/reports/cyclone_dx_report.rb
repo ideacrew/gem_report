@@ -94,7 +94,7 @@ module GemReport
         when Bundler::Source::Git
           # git_branch = get_git_branch(spec.source)
           {
-            "purl" => "pkg:gem/",
+            "purl" => "pkg:gem/#{spec.name}",
             "externalReferences" => [
               {
                 "url" => spec.source.uri,
@@ -110,7 +110,7 @@ module GemReport
           }
         when Bundler::Source::Path
           {
-            "purl" => "pkg:gem/",
+            "purl" => "pkg:gem/#{spec.name}",
             "hashes" => [
               {
                 "alg" => "SHA-1",
